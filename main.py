@@ -112,10 +112,10 @@ def prepare_image(image_path):
 
 
 # %%
-class_names = ['forged', 'original']
+class_names = ['detected', 'original']
 
 # %%
-real_image_path = 'basedata/training/forged/images.jpeg'
+real_image_path = 'basedata/training/detected/images.jpeg'
 
 image = prepare_image(real_image_path)
 
@@ -129,7 +129,7 @@ print(
     f'Class: {class_names[y_pred_class]} Confidence: {np.amax(y_pred) *100:0.2f}')
 
 # %%6
-real_image_path = 'basedata/training/forged/images.jpeg'
+real_image_path = 'basedata/training/detected/images.jpeg'
 
 image = prepare_image(real_image_path)
 
