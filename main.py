@@ -31,7 +31,8 @@ app = FastAPI()
 
 # %%
 
-
+import tensorflow as tf
+from tensorflow.python import keras
 
 
 def convert_to_ela_image(input_path,  quality):
@@ -87,18 +88,86 @@ def build_model():
 model = build_model()
 model.summary()
 
+
+def prepare_image(image_path):
+    return np.array(convert_to_ela_image(image_path,90).resize(image_size)).flatten() / 255.0
+
+
+X=[]
+Y=[]
+
+import random
+path='basedata/training/original'
+for dirname, _, filenames in os.walk(path):
+    for filename in filenames:
+        if filename.endswith('jpg') or filename.endswith('png'):
+            full_path = os.path.join(dirname,filename)
+            X.append(prepare_image(full_path))
+            Y.append(1)
+            if len(Y) % 500 ==0:
+                print(f'processing {len(Y)} images')
+
+                
+random.shuffle(X)
+X = X[:2100]
+Y = Y[:2100]
+print(len(X), len(Y))   
+
+path='basedata/training/detected'
+for dirname, _, filenames in os.walk(path):
+    for filename in filenames:
+        if filename.endswith('jpg') or filename.endswith('png'):
+            full_path = os.path.join(dirname,filename)
+            X.append(prepare_image(full_path))
+            Y.append(0)
+            #if len(Y) % 500 ==0:
+              # print(f'processing {len(Y)} images'
+                
+print(len(X), len(Y))  
+
+
+X=np.array(X)
+Y=to_categorical(Y,2)
+X=X.reshape(-1,128,128,3)
+
+
+X_train, X_val, Y_train, Y_val = train_test_split(X, Y, test_size =0.2, random_state=5)
+X=X.reshape(-1,1,1,1)
+print(len(X_train), len(Y_train))
+print(len(X_val), len(Y_val))
+
+
 # %%
 epochs = 20
 batch_size = 22
 
-# %%
-# model.compile(optimizer='adam',
-#               loss='categorical_crossentropy',
-#               metrics=['accuracy'])
+init_lr = 1e-4
+optimizer = Adam(learning_rate = init_lr, decay = init_lr/epochs)
 
 
-# %%
-model = load_model('model_casia_run1.h5')
+model.compile(optimizer = optimizer,
+              loss= 'binary_crossentropy',
+              metrics=['accuracy'])
+
+
+early_stopping=EarlyStopping(monitor='val_accuracy',
+                            min_delta =0,
+                            patience = 2,
+                            verbose=0,
+                            mode='auto')
+
+
+hist = model.fit(X_train,
+                Y_train,
+                batch_size= batch_size,
+                epochs = epochs,
+                validation_data = (X_val,Y_val),
+                callbacks= [early_stopping])
+
+
+
+model.save('aa.h5')# %%
+# model = load_model('model_casia_run1.h5')
 
 
 # %%
