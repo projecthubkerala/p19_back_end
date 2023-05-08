@@ -82,7 +82,7 @@ def build_model():
     model.add(Dense(2, activation="softmax"))
 
     return model
-
+ 
 
 # %%
 model = build_model()
