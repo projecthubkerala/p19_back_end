@@ -53,4 +53,4 @@ async def create_upload_file(file: UploadFile = File(...)):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
         # Return a response
-    return {"status": True, "BMI Percentage": BMI}
+    return {"status": True, "BMI Percentage": BMI * 100}
