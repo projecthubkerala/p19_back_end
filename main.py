@@ -9,30 +9,21 @@ import cv2
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
-
-
-@app.get("/home")
-async def read_index():
-    return FileResponse("index.html")
-
-
-
-
-
-@app.post("/uploadfile/")
-async def create_upload_file(file: UploadFile = File(...),):
+    
+@app.post("/upload/")
+async def create_upload_file(file: UploadFile = File(...)):
     """
     Upload a file and return the file path.
     """
     # Save the file to disk
-    file_path = f"{file.filename}"
-    base_path = os.getcwd()
-    localised_path = f"{base_path}/{file_path}"
-    # Load the pre-trained face detection cascade
-    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+    file_path = os.path.join(os.getcwd(), file.filename)
+    with open(file_path, "wb") as f:
+        f.write(await file.read())
 
+    # Perform any image processing or analysis here
+    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
     # Load the image
-    image = cv2.imread(localised_path)
+    image = cv2.imread('1.png')
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     
     # Perform face detection
@@ -50,7 +41,10 @@ async def create_upload_file(file: UploadFile = File(...),):
         # Print the face dimensions
         print("Face Width (mm):", face_width_mm)
         print("Face Height (mm):", face_height_mm)
-        
+        if face_height_mm > face_width_mm :
+          BMI = face_width_mm/face_height_mm
+        else:
+          BMI = face_height_mm/face_width_mm
         # Draw a rectangle around the face region of interest
         cv2.rectangle(image, (x, y), (x+w, y+h), (0, 255, 0), 2)
     
@@ -58,7 +52,5 @@ async def create_upload_file(file: UploadFile = File(...),):
     
     cv2.waitKey(0)
     cv2.destroyAllWindows()
-
-    
-    return {"item": True , "Confidence":2 }
-    
+        # Return a response
+    return {"status": True, "BMI Percentage": BMI}
